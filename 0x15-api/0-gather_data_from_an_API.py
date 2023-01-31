@@ -1,24 +1,29 @@
 #!/usr/bin/python3
-"""
-Uses the JSON placeholder api to query data about an employee
-"""
+""" Api """
 
-from requests import get
-from sys import argv
 
-if __name__ == '__main__':
-    main_url = 'https://jsonplaceholder.typicode.com'
-    todo_url = main_url + "/user/{}/todos".format(argv[1])
-    name_url = main_url + "/users/{}".format(argv[1])
-    todo_result = get(todo_url).json()
-    name_result = get(name_url).json()
+import requests
+import sys
 
-    todo_num = len(todo_result)
-    todo_complete = len([todo for todo in todo_result
-                         if todo.get("completed")])
-    name = name_result.get("name")
-    print("Employee {} is done with tasks({}/{}):"
-          .format(name, todo_complete, todo_num))
-    for todo in todo_result:
-        if (todo.get("completed")):
-            print("\t {}".format(todo.get("title")))
+
+if __name__ == "__main__":
+    url = "https://jsonplaceholder.typicode.com/users/"
+    user_id = sys.argv[1]
+    user = requests.get(url + user_id).json()
+    todo = requests.get(url + user_id + "/todos").json()
+    name = user.get("name")
+    username = user.get("username")
+    tasks = []
+    for task in todo:
+        if user.get('id') == int(user_id):
+            tasks.append(task.get("title"))
+            break
+        completed = task.get("completed")
+        with open("{}.csv".format(user_id), "a") as f:
+            f.write('"{}","{}","{}","{}"'.format(user_id, username, completed,
+                                                 name))
+            f.write("")
+    print("Employee {} is done with tasks({}/{}):".format(name, len(tasks),
+                                                          len(todo)))
+    for task in tasks:
+        print("\t {}".format(task))
